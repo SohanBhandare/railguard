@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>IndiaRail — Book Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --blue:#0f2d6b;--orange:#f97316;--red:#ef4444;--green:#10b981;--yellow:#f59e0b;
+  --bg:#f0f4fc;--white:#fff;--border:#d5dfef;--text:#1a2740;--muted:#6b7fa3;
+  --fh:'Rajdhani',sans-serif;--fb:'Sora',sans-serif;--fm:'JetBrains Mono',monospace;
+  --dp:#09111f;--ds:#0f1e32;--db:#1a3050;--dt:#b8cfea;--dm:#3a5070;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh}
+.shell{display:grid;grid-template-columns:1fr 460px;min-height:100vh}
+
+/* ── BOOKING SIDE ── */
+.book{background:var(--white);display:flex;flex-direction:column}
+.bk-hdr{background:linear-gradient(135deg,#0f2d6b 0%,#06183a 100%);padding:22px 40px;position:relative;overflow:hidden}
+.bk-hdr::after{content:'🛤️';position:absolute;right:30px;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.06}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-ico{width:46px;height:46px;background:var(--orange);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 4px 12px rgba(249,115,22,.4)}
+.brand-name{font-family:var(--fh);font-size:1.75rem;font-weight:700;color:#fff;letter-spacing:1px}
+.brand-name em{color:#fba94a;font-style:normal}
+.brand-sub{font-size:.66rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:2px;margin-top:1px}
+.threat-strip{height:5px;background:var(--border)}
+.threat-fill{height:100%;width:0;transition:width .7s ease,background .5s}
+
+.sbar{display:flex;align-items:center;padding:16px 40px 0;gap:0}
+.stp{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.sn{width:26px;height:26px;border-radius:50%;background:var(--border);color:var(--muted);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:.65rem;font-weight:600;transition:all .3s;flex-shrink:0}
+.stp.active .sn{background:var(--orange);color:#fff;box-shadow:0 3px 10px rgba(249,115,22,.4)}
+.stp.done .sn{background:var(--green);color:#fff}
+.stp.active{color:var(--text)}.stp.done{color:var(--green)}
+.sline{flex:1;height:2px;background:var(--border);margin:0 8px;min-width:12px;transition:background .3s}
+.sline.done{background:var(--green)}
+.bkb{padding:24px 40px 36px;flex:1;overflow-y:auto}
+.fsec{display:none}.fsec.active{display:block;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.stit{font-family:var(--fh);font-size:1.5rem;font-weight:700;color:var(--blue);margin-bottom:2px}
+.ssub{font-size:.76rem;color:var(--muted);margin-bottom:20px;line-height:1.5}
+
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{margin-bottom:14px}.fg.full{grid-column:1/-1}
+.lbl{display:block;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
+.inp{width:100%;padding:10px 13px;border:2px solid var(--border);border-radius:10px;font-family:var(--fb);font-size:.85rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;background:#fff}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(15,45,107,.08)}
+.inp::placeholder{color:#b0bed4}
+.inp.bot-fill{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,.12)!important;animation:bflash .4s ease}
+@keyframes bflash{0%,100%{background:#fff}50%{background:#fff5f5}}
+
+.tc{border:2px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:all .2s;margin-bottom:10px;position:relative}
+.tc:hover{border-color:#94afd4;box-shadow:0 2px 10px rgba(15,45,107,.07)}
+.tc.sel{border-color:var(--orange);background:rgba(249,115,22,.03)}
+.tcstripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--orange);border-radius:12px 0 0 12px;opacity:0;transition:opacity .2s}
+.tc.sel .tcstripe{opacity:1}
+.tctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px}
+.tnm{font-family:var(--fh);font-size:1rem;font-weight:700;color:var(--blue)}
+.tnum{font-family:var(--fm);font-size:.62rem;color:var(--muted);margin-top:2px}
+.trt{display:flex;align-items:center;gap:8px}
+.tt{font-family:var(--fh);font-size:1.15rem;font-weight:700}
+.tdur{flex:1;text-align:center;font-size:.62rem;color:var(--muted);padding:0 6px}
+.td-line{height:1px;background:var(--border);margin:2px 0;position:relative}
+.tdot{position:absolute;right:-3px;top:-4px;font-size:.55rem;color:var(--muted)}
+.tp{font-family:var(--fh);font-size:1rem;font-weight:700;color:var(--green)}
+.avail{font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:12px;background:rgba(16,185,129,.1);color:var(--green)}
+.avail.wl{background:rgba(239,68,68,.08);color:var(--red)}
+
+.pysum{background:var(--bg);border-radius:12px;padding:15px;margin-bottom:18px;border:1px solid var(--border)}
+.prow{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:7px}
+.ptot{border-top:2px solid var(--border);padding-top:8px;margin-top:4px}
+.ptot>*{font-family:var(--fh);font-size:1.05rem;font-weight:700}
+.ptot .pv{color:var(--green)}
+.pymg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.pymb{border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;font-size:.76rem;font-weight:600}
+.pymb:hover{border-color:#94afd4}.pymb.sel{border-color:var(--orange);background:rgba(249,115,22,.05)}
+.pico{display:block;font-size:1.4rem;margin-bottom:4px}
+.pxcard{border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px}
+.pxh{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+
+.btn{padding:11px 22px;border:none;border-radius:10px;font-family:var(--fb);font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+.bpri{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(249,115,22,.35)}
+.bpri:hover{background:#e86c05;transform:translateY(-1px)}.bpri:disabled{background:#ccc;box-shadow:none;transform:none;cursor:not-allowed}
+.bsec{background:transparent;color:var(--muted);border:2px solid var(--border)}
+.bsec:hover{border-color:#94afd4;color:var(--blue)}
+.fac{display:flex;justify-content:space-between;align-items:center;margin-top:20px}
+
+/* result screens */
+.rscrn{display:none;flex-direction:column;align-items:center;justify-content:center;padding:44px 40px;text-align:center;flex:1}
+.rscrn.show{display:flex;animation:fi .5s ease}
+.rsi{font-size:5rem;margin-bottom:14px}
+.rst{font-family:var(--fh);font-size:2rem;font-weight:700;margin-bottom:6px}
+.rss{font-size:.82rem;color:var(--muted);max-width:340px;line-height:1.7;margin-bottom:20px}
+.pnr-box{background:var(--blue);color:#fff;border-radius:14px;padding:14px 34px;margin-bottom:20px}
+.pnr-l{font-size:.6rem;letter-spacing:2px;opacity:.45;margin-bottom:4px}
+.pnr-v{font-family:var(--fm);font-size:1.4rem;letter-spacing:3px;font-weight:600}
+.blk-box{background:#fff5f5;border:2px solid #fecaca;border-radius:14px;padding:14px 28px;margin-bottom:14px}
+.blk-n{font-family:var(--fm);font-size:2.8rem;font-weight:600;color:var(--red);line-height:1}
+.blk-s{font-size:.68rem;color:var(--muted);margin-top:3px}
+
+/* captcha modal */
+.capBg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(5px);z-index:9000;display:none;align-items:center;justify-content:center}
+.capBg.open{display:flex;animation:fi .3s}
+.capBox{background:#fff;border-radius:18px;padding:30px 34px;max-width:380px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.25)}
+.cap-ico{font-size:2.8rem;margin-bottom:10px}
+.cap-title{font-family:var(--fh);font-size:1.5rem;font-weight:700;color:var(--blue);margin-bottom:4px}
+.cap-sub{font-size:.78rem;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.cap-q{font-family:var(--fm);font-size:1.6rem;font-weight:600;color:var(--blue);background:var(--bg);border-radius:10px;padding:12px 24px;display:inline-block;margin-bottom:14px;letter-spacing:5px}
+.cap-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.cap-bf{height:100%;background:var(--green);border-radius:2px;transition:width .5s linear,background .3s}
+.cap-inp{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:10px;font-family:var(--fm);font-size:1.1rem;text-align:center;outline:none;margin-bottom:12px;transition:border-color .2s}
+.cap-inp:focus{border-color:var(--blue)}
+.cap-err{color:var(--red);font-size:.76rem;min-height:16px;margin-bottom:10px}
+
+/* verdict overlay */
+.vf{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:8000;opacity:0;pointer-events:none}
+.vf.show{animation:vfa 2.2s forwards}
+@keyframes vfa{0%{opacity:0}10%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.vfi{font-family:var(--fh);font-size:2.8rem;font-weight:700;padding:18px 42px;border-radius:18px;letter-spacing:2px}
+.vfb{background:rgba(239,68,68,.95);color:#fff;box-shadow:0 0 80px rgba(239,68,68,.5)}
+.vfh{background:rgba(16,185,129,.95);color:#fff;box-shadow:0 0 80px rgba(16,185,129,.5)}
+
+/* ── DETECTOR SIDE ── */
+.det{background:var(--dp);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden}
+.det-hdr{background:#060e1a;padding:14px 20px;border-bottom:1px solid var(--db)}
+.det-t{font-family:var(--fh);font-size:1.05rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.25;transform:scale(.6)}}
+.det-sub{font-size:.63rem;color:var(--dm);margin-top:1px}
+.dtabs{display:flex;border-bottom:1px solid var(--db)}
+.dtab{flex:1;padding:9px 4px;text-align:center;font-size:.68rem;font-weight:600;color:var(--dm);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.dtab.on{color:var(--orange);border-bottom-color:var(--orange)}.dtab:hover:not(.on){color:var(--dt)}
+.dbody{flex:1;padding:12px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.tpg{display:none}.tpg.on{display:flex;flex-direction:column;gap:10px}
+
+.gcard{background:var(--ds);border:1px solid var(--db);border-radius:12px;padding:13px;text-align:center}
+.glbl{font-size:.6rem;color:var(--dm);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.gwrap{display:inline-block;width:154px;height:82px;position:relative}
+.gsvg{display:block}
+.gctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:2px}
+.gpct{font-family:var(--fm);font-size:1.4rem;font-weight:600;color:var(--dt);line-height:1;transition:color .5s}
+.gvrd{font-size:.56rem;text-transform:uppercase;letter-spacing:1px;color:var(--dm);margin-top:2px}
+.gbars{margin-top:9px}
+.gbr{display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.gbl{font-size:.6rem;color:var(--dm);width:74px;flex-shrink:0}
+.gbt{flex:1;height:4px;background:var(--db);border-radius:2px;overflow:hidden}
+.gbf{height:100%;border-radius:2px;transition:width .6s,background .5s}
+.gbv{font-family:var(--fm);font-size:.6rem;color:var(--dm);width:28px;text-align:right}
+
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.sc{background:var(--ds);border:1px solid var(--db);border-radius:9px;padding:8px 10px}
+.sl2{font-size:.57rem;color:var(--dm);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.sv{font-family:var(--fm);font-size:.85rem;font-weight:600;color:var(--dt);transition:color .3s}
+.sv.d{color:#ef4444!important}.sv.w{color:#f59e0b!important}.sv.g{color:#10b981!important}
+
+.fc{background:var(--ds);border:1px solid var(--db);border-radius:12px;padding:11px}
+.fcl{font-size:.6rem;color:var(--dm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.fe{display:flex;align-items:flex-start;gap:7px;padding:5px 0;border-bottom:1px solid #0c1a28;font-size:.7rem}
+.fe:last-child{border-bottom:none}
+.fd{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.fd.c{background:#ef4444;box-shadow:0 0 5px #ef444480}.fd.h{background:#f97316;box-shadow:0 0 5px #f9731680}.fd.m{background:#f59e0b}.fd.l{background:#10b981}
+.ft{color:#748fa8;line-height:1.4}.ft strong{color:var(--dt)}
+.nof{font-size:.7rem;color:var(--dm);text-align:center;padding:12px 0}
+
+.canvas-wrap{background:var(--ds);border:1px solid var(--db);border-radius:12px;padding:11px}
+.cwlbl{font-size:.6rem;color:var(--dm);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+.cwlbl button{background:none;border:1px solid var(--db);color:var(--dm);border-radius:5px;padding:1px 7px;font-size:.58rem;cursor:pointer}
+canvas{width:100%;display:block;border-radius:7px;background:#04090f}
+
+.hist-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #0c1a28;font-size:.68rem}
+.hist-row:last-child{border-bottom:none}
+.hid{font-family:var(--fm);font-size:.62rem;color:var(--dm);flex:1}
+.hbdg{padding:2px 7px;border-radius:10px;font-size:.6rem;font-weight:700}
+.hb{background:rgba(239,68,68,.15);color:#ef4444}.hh{background:rgba(16,185,129,.12);color:#10b981}
+.hs{font-family:var(--fm);font-size:.62rem;color:var(--dm)}
+
+/* bot sim */
+.bsp{background:#060e1a;border-top:1px solid var(--db);padding:12px 18px 16px}
+.bst{font-family:var(--fh);font-size:.9rem;font-weight:700;color:#ef4444;display:flex;align-items:center;gap:7px;margin-bottom:2px}
+.bp2{width:6px;height:6px;border-radius:50%;background:#ef4444;animation:pulse 1s infinite}
+.bss{font-size:.62rem;color:var(--dm);margin-bottom:9px}
+.bsc{display:flex;gap:7px;align-items:center;margin-bottom:7px}
+.bsel{background:var(--ds);border:1px solid var(--db);border-radius:7px;padding:6px 10px;color:var(--dt);font-family:var(--fm);font-size:.7rem;outline:none;flex:1}
+.bbt{padding:7px 13px;border:none;border-radius:7px;font-family:var(--fb);font-size:.7rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px}
+.blaunch{background:#ef4444;color:#fff}.blaunch:hover{background:#dc2626}.blaunch:disabled{background:#3a1a1a;color:#7a4a4a;cursor:not-allowed}
+.bstop{background:var(--ds);color:var(--dm);border:1px solid var(--db)}.bstop:hover{border-color:#ef4444;color:#ef4444}
+.blog2{background:#020609;border:1px solid var(--db);border-radius:7px;padding:7px;max-height:62px;overflow-y:auto;font-family:var(--fm);font-size:.6rem}
+.ll{color:var(--dm);margin-bottom:2px}.ll.a{color:#ef4444}.ll.i{color:#3b82f6}.ll.d{color:#f59e0b}
+.bprg{height:3px;background:var(--db);border-radius:2px;margin-top:6px;overflow:hidden}
+.bpf{height:100%;background:#ef4444;border-radius:2px;width:0;transition:width .3s}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1a3050;border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="vf" id="vf"><div class="vfi" id="vft"></div></div>
+
+<div class="capBg" id="capBg">
+  <div class="capBox">
+    <div class="cap-ico">🔐</div>
+    <div class="cap-title">Verify You're Human</div>
+    <div class="cap-sub">Suspicious activity detected. Solve this math problem to continue your booking.</div>
+    <div class="cap-q" id="capQ">—</div>
+    <div class="cap-bar"><div class="cap-bf" id="capBf" style="width:100%"></div></div>
+    <input class="cap-inp" id="capInp" placeholder="Type your answer..." maxlength="6" autocomplete="off"/>
+    <div class="cap-err" id="capErr"></div>
+    <button class="btn bpri" style="width:100%" onclick="checkCap()">Submit Answer →</button>
+    <button class="btn bsec" style="width:100%;margin-top:8px" onclick="closeCap(false)">Cancel Booking</button>
+  </div>
+</div>
+
+<div class="shell">
+
+<!-- ══ BOOKING ══ -->
+<div class="book" id="bookPanel">
+  <div class="bk-hdr">
+    <div class="brand">
+      <div class="brand-ico">🚆</div>
+      <div>
+        <div class="brand-name">India<em>Rail</em></div>
+        <div class="brand-sub">Powered by Advanced Bot Detection</div>
+      </div>
+    </div>
+  </div>
+  <div class="threat-strip"><div class="threat-fill" id="threatFill"></div></div>
+  <div class="sbar">
+    <div class="stp active" id="s1"><div class="sn">1</div>Search</div>
+    <div class="sline" id="sl1"></div>
+    <div class="stp" id="s2"><div class="sn">2</div>Select</div>
+    <div class="sline" id="sl2"></div>
+    <div class="stp" id="s3"><div class="sn">3</div>Passenger</div>
+    <div class="sline" id="sl3"></div>
+    <div class="stp" id="s4"><div class="sn">4</div>Payment</div>
+  </div>
+  <div class="bkb" id="bkb">
+    <!-- Step 1 -->
+    <div class="fsec active" id="sec1">
+      <div class="stit">Search Trains</div>
+      <div class="ssub">All interactions are monitored. Natural behavior is rewarded.</div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">From Station</label>
+          <select class="inp" id="fromStn">
+            <option value="">Select origin</option>
+            <option>New Delhi (NDLS)</option><option>Mumbai Central (BCT)</option>
+            <option>Chennai Central (MAS)</option><option>Howrah (HWH)</option>
+            <option>Pune (PUNE)</option><option>Bangalore (SBC)</option>
+            <option>Ahmedabad (ADI)</option><option>Lucknow (LKO)</option>
+            <option>Hyderabad (HYB)</option><option>Jaipur (JP)</option>
+          </select></div>
+        <div class="fg"><label class="lbl">To Station</label>
+          <select class="inp" id="toStn">
+            <option value="">Select destination</option>
+            <option>New Delhi (NDLS)</option><option>Mumbai Central (BCT)</option>
+            <option>Chennai Central (MAS)</option><option>Howrah (HWH)</option>
+            <option>Pune (PUNE)</option><option>Bangalore (SBC)</option>
+            <option>Ahmedabad (ADI)</option><option>Lucknow (LKO)</option>
+            <option>Hyderabad (HYB)</option><option>Jaipur (JP)</option>
+          </select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">Date</label><input class="inp" type="date" id="jdate"/></div>
+        <div class="fg"><label class="lbl">Passengers</label>
+          <select class="inp" id="paxN"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">Class</label>
+          <select class="inp" id="tclass"><option value="SL">Sleeper (SL)</option><option value="3A">AC 3-Tier (3A)</option><option value="2A">AC 2-Tier (2A)</option><option value="1A">First Class (1A)</option></select></div>
+        <div class="fg"><label class="lbl">Quota</label>
+          <select class="inp" id="quota"><option value="GN">General</option><option value="TQ">Tatkal</option><option value="PT">Premium Tatkal</option></select></div>
+      </div>
+      <div class="fac"><div></div><button class="btn bpri" onclick="goStep(2)">Search →</button></div>
+    </div>
+    <!-- Step 2 -->
+    <div class="fsec" id="sec2">
+      <div class="stit">Available Trains</div>
+      <div class="ssub">Select a train to continue. Availability shown for selected class.</div>
+      <div id="trainList"></div>
+      <div class="fac">
+        <button class="btn bsec" onclick="goStep(1)">← Back</button>
+        <button class="btn bpri" id="btnTrain" onclick="goStep(3)" disabled>Continue →</button>
+      </div>
+    </div>
+    <!-- Step 3 -->
+    <div class="fsec" id="sec3">
+      <div class="stit">Passenger Details</div>
+      <div class="ssub">Enter details carefully. Field behavior is tracked.</div>
+      <div id="paxForms"></div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">Mobile</label><input class="inp" type="tel" id="cMobile" placeholder="10-digit number" maxlength="10"/></div>
+        <div class="fg"><label class="lbl">Email</label><input class="inp" type="email" id="cEmail" placeholder="email@example.com"/></div>
+      </div>
+      <div class="fac">
+        <button class="btn bsec" onclick="goStep(2)">← Back</button>
+        <button class="btn bpri" onclick="goStep(4)">Payment →</button>
+      </div>
+    </div>
+    <!-- Step 4 -->
+    <div class="fsec" id="sec4">
+      <div class="stit">Payment</div>
+      <div class="ssub">Final verification before ticket confirmation.</div>
+      <div class="pysum" id="psum"></div>
+      <div class="pymg">
+        <div class="pymb sel" onclick="sPay('upi',this)"><span class="pico">💳</span>UPI</div>
+        <div class="pymb" onclick="sPay('card',this)"><span class="pico">🏦</span>Card</div>
+        <div class="pymb" onclick="sPay('nb',this)"><span class="pico">🏛️</span>Net Banking</div>
+      </div>
+      <div class="fg" id="upiF"><label class="lbl">UPI ID</label><input class="inp" id="upiId" placeholder="name@upi"/></div>
+      <div class="fac">
+        <button class="btn bsec" onclick="goStep(3)">← Back</button>
+        <button class="btn bpri" onclick="doBook()">🔒 Confirm & Pay</button>
+      </div>
+    </div>
+  </div>
+  <!-- Result screens -->
+  <div class="rscrn" id="succScr">
+    <div class="rsi">✅</div>
+    <div class="rst" style="color:var(--green)">Booking Confirmed!</div>
+    <div class="rss">Your ticket is reserved. PNR sent to your mobile & email.</div>
+    <div class="pnr-box"><div class="pnr-l">PNR NUMBER</div><div class="pnr-v" id="pnrV">—</div></div>
+    <div style="font-size:.76rem;color:var(--muted);margin-bottom:6px">Bot score: <strong id="succPct" style="color:var(--green)">—</strong></div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:20px">Session: <span id="succSid" style="font-family:var(--fm)">—</span></div>
+    <button class="btn bpri" onclick="resetAll()">Book Another Ticket</button>
+  </div>
+  <div class="rscrn" id="blkScr">
+    <div class="rsi">🚫</div>
+    <div class="rst" style="color:var(--red)">Access Blocked!</div>
+    <div class="rss">Our ML system detected bot behavior. Your session was flagged, logged, and blocked to protect genuine passengers.</div>
+    <div class="blk-box"><div class="blk-n" id="blkPct">—%</div><div class="blk-s">Bot Probability Score</div></div>
+    <div style="font-size:.74rem;color:var(--muted);margin-bottom:6px">Session: <strong id="blkSid" style="font-family:var(--fm)">—</strong></div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:20px" id="blkReasons"></div>
+    <button class="btn bpri" onclick="resetAll()">Try Again</button>
+  </div>
+</div>
+
+<!-- ══ DETECTOR ══ -->
+<div class="det">
+  <div class="det-hdr">
+    <div class="det-t"><div class="ldot"></div>ML Bot Detector <span style="font-family:var(--fm);font-size:.62rem;color:var(--dm);margin-left:4px">v2.0 LIVE</span></div>
+    <div class="det-sub">RF + IsolationForest + Behavioral Biometrics — connected to backend</div>
+  </div>
+  <div class="dtabs">
+    <div class="dtab on" onclick="stab('analysis',this)">📊 Analysis</div>
+    <div class="dtab" onclick="stab('signals',this)">📡 Signals</div>
+    <div class="dtab" onclick="stab('visual',this)">🖱️ Visuals</div>
+    <div class="dtab" onclick="stab('history',this)">📋 History</div>
+  </div>
+  <div class="dbody">
+
+    <!-- analysis -->
+    <div class="tpg on" id="tpg-analysis">
+      <div class="gcard">
+        <div class="glbl">Bot Probability (ML Ensemble)</div>
+        <div class="gwrap">
+          <svg class="gsvg" width="154" height="82" viewBox="0 0 154 82">
+            <path d="M14 76 A63 63 0 0 1 140 76" fill="none" stroke="#1a3050" stroke-width="10" stroke-linecap="round"/>
+            <path id="garc" d="M14 76 A63 63 0 0 1 14 76" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" style="transition:stroke-dasharray .6s,stroke .5s"/>
+          </svg>
+          <div class="gctr"><div class="gpct" id="gv">0%</div><div class="gvrd" id="gvrd">WATCHING</div></div>
+        </div>
+        <div class="gbars">
+          <div class="gbr"><div class="gbl">Speed</div><div class="gbt"><div class="gbf" id="b-speed" style="width:0%"></div></div><div class="gbv" id="bv-speed">0%</div></div>
+          <div class="gbr"><div class="gbl">Mouse</div><div class="gbt"><div class="gbf" id="b-mouse" style="width:0%"></div></div><div class="gbv" id="bv-mouse">0%</div></div>
+          <div class="gbr"><div class="gbl">Keystroke</div><div class="gbt"><div class="gbf" id="b-ks" style="width:0%"></div></div><div class="gbv" id="bv-ks">0%</div></div>
+          <div class="gbr"><div class="gbl">Pattern</div><div class="gbt"><div class="gbf" id="b-pattern" style="width:0%"></div></div><div class="gbv" id="bv-pattern">0%</div></div>
+          <div class="gbr"><div class="gbl">Fingerprint</div><div class="gbt"><div class="gbf" id="b-fp" style="width:0%"></div></div><div class="gbv" id="bv-fp">0%</div></div>
+        </div>
+      </div>
+      <div class="fc">
+        <div class="fcl">⚠ Flagged Signals</div>
+        <div id="flagList"><div class="nof">✅ Clean session</div></div>
+      </div>
+    </div>
+
+    <!-- signals -->
+    <div class="tpg" id="tpg-signals">
+      <div class="sgrid">
+        <div class="sc"><div class="sl2">Mouse Moves</div><div class="sv" id="sig-mm">0</div></div>
+        <div class="sc"><div class="sl2">Keystroke Avg</div><div class="sv" id="sig-ks">—</div></div>
+        <div class="sc"><div class="sl2">KS Deviation</div><div class="sv" id="sig-kd">—</div></div>
+        <div class="sc"><div class="sl2">Form Fill Time</div><div class="sv" id="sig-fft">0s</div></div>
+        <div class="sc"><div class="sl2">Scroll Events</div><div class="sv" id="sig-sc">0</div></div>
+        <div class="sc"><div class="sl2">Click Precision</div><div class="sv" id="sig-cp">—</div></div>
+        <div class="sc"><div class="sl2">Mouse Speed</div><div class="sv" id="sig-ms">—</div></div>
+        <div class="sc"><div class="sl2">Copy-Paste</div><div class="sv" id="sig-pp">None</div></div>
+        <div class="sc"><div class="sl2">Tab Presses</div><div class="sv" id="sig-tb">0</div></div>
+        <div class="sc"><div class="sl2">Field Fills</div><div class="sv" id="sig-fe">0</div></div>
+        <div class="sc"><div class="sl2">Corrections</div><div class="sv" id="sig-co">0</div></div>
+        <div class="sc"><div class="sl2">Window Blurs</div><div class="sv" id="sig-wb">0</div></div>
+      </div>
+      <div class="fc">
+        <div class="fcl">Backend API Status</div>
+        <div id="apiStatus" class="nof">Connecting...</div>
+      </div>
+    </div>
+
+    <!-- visuals -->
+    <div class="tpg" id="tpg-visual">
+      <div class="canvas-wrap">
+        <div class="cwlbl">Mouse Trail<button onclick="clearTrail()">Clear</button></div>
+        <canvas id="trailC" height="100"></canvas>
+        <div style="font-size:.58rem;color:var(--dm);margin-top:4px">🟢 Natural path &nbsp; 🔴 Robotic/straight</div>
+      </div>
+      <div class="canvas-wrap">
+        <div class="cwlbl">Keystroke Rhythm</div>
+        <canvas id="rhythmC" height="54"></canvas>
+        <div style="font-size:.6rem;color:var(--dm);margin-top:4px;text-align:center" id="rhythmNote">No keystrokes yet</div>
+      </div>
+      <div class="canvas-wrap">
+        <div class="cwlbl">Click Heatmap</div>
+        <canvas id="clickC" height="90"></canvas>
+        <div style="font-size:.58rem;color:var(--dm);margin-top:4px">Center dot = pixel-perfect (bot signal)</div>
+      </div>
+    </div>
+
+    <!-- history -->
+    <div class="tpg" id="tpg-history">
+      <div class="fc">
+        <div class="fcl" style="display:flex;justify-content:space-between">
+          Session Log (this tab) <button onclick="clearHist()" style="background:none;border:1px solid var(--db);color:var(--dm);border-radius:4px;padding:1px 6px;font-size:.58rem;cursor:pointer">Clear</button>
+        </div>
+        <div id="histRows"><div class="nof">No sessions yet</div></div>
+      </div>
+      <div class="sgrid">
+        <div class="sc"><div class="sl2">Total</div><div class="sv" id="hs-tot">0</div></div>
+        <div class="sc"><div class="sl2">Bots Blocked</div><div class="sv d" id="hs-bot">0</div></div>
+        <div class="sc"><div class="sl2">Humans Passed</div><div class="sv g" id="hs-hum">0</div></div>
+        <div class="sc"><div class="sl2">Bot Rate</div><div class="sv" id="hs-rate">0%</div></div>
+      </div>
+      <div class="fc">
+        <div class="fcl">DB Sessions (from backend)</div>
+        <div id="dbSessions"><div class="nof">Loading...</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bot Simulator -->
+  <div class="bsp">
+    <div class="bst"><div class="bp2"></div>Bot Simulator</div>
+    <div class="bss">Injects bot behavior to test the backend ML pipeline end-to-end</div>
+    <div class="bsc">
+      <select class="bsel" id="botType">
+        <option value="speed">⚡ Speed Bot (0.2s/field)</option>
+        <option value="smart">🤖 Smart Bot (1.5s/field)</option>
+        <option value="sneaky">🕵️ Sneaky Bot (3s/field)</option>
+        <option value="human_like">👻 Human-Like Bot</option>
+        <option value="tatkal">🔥 Tatkal Rush Bot</option>
+      </select>
+      <button class="bbt blaunch" id="btnL" onclick="launchBot()">▶ Launch</button>
+      <button class="bbt bstop" id="btnS" onclick="stopBot()" style="display:none">■ Stop</button>
+    </div>
+    <div class="blog2" id="botLog"><div class="ll">[ ready ] Select a bot and press Launch</div></div>
+    <div class="bprg"><div class="bpf" id="bpf"></div></div>
+  </div>
+</div>
+
+</div><!-- shell -->
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const API = '';  // empty = same host; set to 'http://localhost:5000' if separate
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let SESSION_ID = null;
+let botRunning = false;
+let payMode = 'upi';
+let selTrain = null;
+let selCls   = '3A';
+const hist   = [];
+
+const S = {
+  t0: Date.now(), tForm: null,
+  mm:0, mpos:[], mspd:[], mLastT:0,
+  ks:[], ksLast:0,
+  scroll:0, hover:0,
+  clicks:[],
+  paste:0, tab:0, fills:0, corr:0, wblur:0,
+  botMode:false,
+  B:{ mm:0, ks:0, prec:1.0, scroll:0, paste:true, spd:0 }
+};
+
+function resetState(){
+  Object.assign(S,{t0:Date.now(),tForm:null,mm:0,mpos:[],mspd:[],mLastT:0,
+    ks:[],ksLast:0,scroll:0,hover:0,clicks:[],paste:0,tab:0,fills:0,corr:0,
+    wblur:0,botMode:false,B:{mm:0,ks:0,prec:1.0,scroll:0,paste:true,spd:0}});
+  updateUI();
+}
+
+// ══════════════════════════════════════════════
+//  BACKEND API
+// ══════════════════════════════════════════════
+async function apiCall(path, method='GET', body=null){
+  try{
+    const opts = { method, headers:{'Content-Type':'application/json'} };
+    if(body) opts.body = JSON.stringify(body);
+    const r = await fetch(API+path, opts);
+    return await r.json();
+  } catch(e){
+    return { error: e.message };
+  }
+}
+
+async function startSession(){
+  const r = await apiCall('/api/session/start','POST',{});
+  SESSION_ID = r.session_id || ('LOCAL-'+Math.random().toString(36).slice(2,8).toUpperCase());
+}
+
+async function analyzeWithBackend(){
+  const elapsed = (Date.now() - (S.tForm||S.t0))/1000;
+  const moves = S.botMode ? S.B.mm : S.mm;
+  const ksAvg = S.botMode ? S.B.ks : avg(S.ks);
+  const ksDev = S.botMode ? S.B.ks*0.03 : stdDev(S.ks);
+  const prec  = S.botMode ? S.B.prec : avg(S.clicks.map(c=>c.prec));
+  const mspd  = S.botMode ? S.B.spd : avg(S.mspd);
+
+  const payload = {
+    session_id:      SESSION_ID,
+    elapsed_seconds: elapsed,
+    form_fill_time:  elapsed,
+    mouse_moves:     moves,
+    avg_mouse_speed: mspd,
+    scroll_events:   S.botMode?S.B.scroll:S.scroll,
+    hover_events:    S.hover,
+    avg_keystroke_ms:ksAvg,
+    keystroke_stddev:ksDev,
+    avg_click_prec:  prec,
+    total_clicks:    S.clicks.length,
+    copy_pastes:     S.botMode?1:S.paste,
+    tab_presses:     S.tab,
+    field_fills:     S.fills,
+    corrections:     S.corr,
+    window_blurs:    S.wblur,
+    fp_score:        getFP(),
+  };
+  return await apiCall('/api/analyze','POST', payload);
+}
+
+function getFP(){
+  let s=0;
+  if(navigator.webdriver) s+=0.45;
+  if(!navigator.languages||!navigator.languages.length) s+=0.15;
+  if(!navigator.plugins||!navigator.plugins.length) s+=0.08;
+  if(window.outerWidth===0||window.outerHeight===0) s+=0.15;
+  return Math.min(s,1);
+}
+
+// ══════════════════════════════════════════════
+//  LOCAL HEURISTIC SCORES (for live display)
+// ══════════════════════════════════════════════
+function computeLocal(){
+  const elapsed = (Date.now() - (S.tForm||S.t0))/1000;
+  const moves = S.botMode?S.B.mm:S.mm;
+  const ksA   = S.botMode?S.B.ks:avg(S.ks);
+  const ksD   = S.botMode?S.B.ks*0.03:stdDev(S.ks);
+  const prec  = S.botMode?S.B.prec:avg(S.clicks.map(c=>c.prec));
+  const sc    = S.botMode?S.B.scroll:S.scroll;
+  const paste = S.botMode?true:S.paste>0;
+  const mspd  = S.botMode?S.B.spd:avg(S.mspd);
+
+  let speed=(elapsed<2?0.98:elapsed<5?0.90:elapsed<10?0.65:elapsed<20?0.38:elapsed<45?0.15:0.05);
+  if(ksA>0) speed=Math.max(speed,ksA<20?0.97:ksA<50?0.80:ksA<100?0.45:0);
+
+  let mouse=(moves<2?0.97:moves<8?0.82:moves<20?0.50:moves<50?0.22:moves<100?0.08:0.03);
+  if(mspd>1500) mouse=Math.max(mouse,0.72);
+  if(sc===0&&elapsed>6) mouse=Math.max(mouse,0.40);
+
+  let ks=0;
+  if(ksA>0) ks=(ksD<5&&ksA<50?0.96:ksD<15&&ksA<80?0.78:ksD<30&&ksA<150?0.40:0.08);
+  if(prec>0.995) ks=Math.max(ks,0.93); else if(prec>0.97) ks=Math.max(ks,0.62);
+
+  let pattern=0;
+  if(paste) pattern+=0.38;
+  if(S.corr===0&&S.fills>3) pattern+=0.22;
+  if(S.tab>10) pattern+=0.18;
+  if(S.wblur>4) pattern+=0.12;
+  pattern=Math.min(pattern,1);
+
+  const fp=getFP();
+  const combined=0.22*speed+0.20*mouse+0.18*ks+0.15*pattern+0.15*fp+0.10*0;
+  return {speed,mouse,ks,pattern,fp,combined,elapsed,moves,ksA,ksD,prec,sc,paste,mspd};
+}
+
+function updateUI(){
+  const sc=computeLocal();
+  const p=sc.combined, p100=Math.round(p*100);
+  const col=p>.7?'#ef4444':p>.4?'#f59e0b':'#10b981';
+
+  // Gauge
+  const ARC=197;
+  const arc=$('garc');
+  if(arc){arc.style.strokeDasharray=(p*ARC)+' '+ARC;arc.style.stroke=col;}
+  setText('gv',p100+'%'); $('gv').style.color=col;
+  setText('gvrd',p>.7?'🤖 BOT DETECTED':p>.4?'⚠ SUSPICIOUS':'✅ HUMAN');
+
+  setBar('speed',sc.speed);setBar('mouse',sc.mouse);setBar('ks',sc.ks);setBar('pattern',sc.pattern);setBar('fp',sc.fp);
+
+  const tf=$('threatFill');
+  if(tf){tf.style.width=p100+'%';tf.style.background=col;}
+
+  // Signals
+  setSig('sig-mm',sc.moves,sc.moves<5);
+  setSig('sig-ks',sc.ksA>0?sc.ksA.toFixed(0)+'ms':'—',sc.ksA>0&&sc.ksA<70);
+  setSig('sig-kd',sc.ksD>0?'±'+sc.ksD.toFixed(0)+'ms':'—',sc.ksD<10&&sc.ksA>0);
+  setSig('sig-fft',sc.elapsed.toFixed(1)+'s',sc.elapsed<12&&sc.elapsed>0);
+  setSig('sig-sc',sc.sc,sc.sc===0&&sc.elapsed>5);
+  setSig('sig-cp',sc.prec>0?(sc.prec*100).toFixed(1)+'%':'—',sc.prec>0.97);
+  setSig('sig-ms',sc.mspd>0?Math.round(sc.mspd)+'px/s':'—',sc.mspd>1200);
+  setSig('sig-pp',sc.paste?'DETECTED':'None',sc.paste);
+  setSig('sig-tb',S.tab,S.tab>10);
+  setSig('sig-fe',S.fills,false);
+  setSig('sig-co',S.corr,false);
+  setSig('sig-wb',S.wblur,S.wblur>3);
+
+  // Flags
+  const flags=getFlags(sc);
+  const fl=$('flagList');
+  if(fl){
+    fl.innerHTML=flags.length
+      ?flags.map(f=>`<div class="fe"><div class="fd ${f.s}"></div><div class="ft">${f.m}</div></div>`).join('')
+      :'<div class="nof">✅ No suspicious signals</div>';
+  }
+  drawRhythm();
+}
+
+function getFlags(sc){
+  const f=[];
+  if(sc.elapsed<5&&sc.elapsed>0) f.push({s:'c',m:`<strong>Superhuman Speed</strong> — ${sc.elapsed.toFixed(1)}s (bot: < 5s)`});
+  if(sc.ksA>0&&sc.ksA<50) f.push({s:'c',m:`<strong>Machine Keystrokes</strong> — ${sc.ksA.toFixed(0)}ms avg ±${sc.ksD.toFixed(0)}ms`});
+  if(sc.moves<5&&sc.elapsed>3) f.push({s:'h',m:`<strong>No Mouse Movement</strong> — ${sc.moves} events only`});
+  if(sc.prec>0.98) f.push({s:'h',m:`<strong>Pixel-Perfect Clicks</strong> — ${(sc.prec*100).toFixed(2)}%`});
+  if(sc.paste) f.push({s:'m',m:`<strong>Copy-Paste Detected</strong> — no manual typing`});
+  if(sc.sc===0&&sc.elapsed>8) f.push({s:'m',m:`<strong>No Scroll Events</strong> — page never scrolled`});
+  if(S.tab>12) f.push({s:'m',m:`<strong>Tab-Key Navigation</strong> — ${S.tab} presses`});
+  return f;
+}
+
+// ══════════════════════════════════════════════
+//  EVENT TRACKING
+// ══════════════════════════════════════════════
+document.addEventListener('mousemove',e=>{
+  if(S.botMode) return;
+  const now=Date.now(); S.mm++;
+  if(S.mpos.length>0&&now-S.mLastT>0){
+    const p=S.mpos[S.mpos.length-1];
+    const dt=(now-S.mLastT)/1000;
+    if(dt>0) S.mspd.push(Math.sqrt((e.clientX-p.x)**2+(e.clientY-p.y)**2)/dt);
+  }
+  if(S.mpos.length<600) S.mpos.push({x:e.clientX,y:e.clientY});
+  S.mLastT=now; drawTrail();
+},{passive:true});
+document.addEventListener('scroll',()=>{if(!S.botMode)S.scroll++;updateUI();},{passive:true});
+document.addEventListener('mouseover',()=>{if(!S.botMode)S.hover++;},{passive:true});
+document.addEventListener('keydown',e=>{
+  if(S.botMode) return;
+  const now=Date.now();
+  if(!S.tForm) S.tForm=now;
+  if(S.ksLast) S.ks.push(now-S.ksLast);
+  S.ksLast=now;
+  if(e.key==='Tab') S.tab++;
+  updateUI();
+},{passive:true});
+document.addEventListener('input',e=>{
+  if(!S.tForm) S.tForm=Date.now();
+  if(!S.botMode){
+    S.fills++;
+    if(e.inputType==='deleteContentBackward') S.corr++;
+  }
+  updateUI();
+});
+document.addEventListener('paste',()=>{if(!S.botMode)S.paste++;updateUI();});
+document.addEventListener('click',e=>{
+  const el=e.target;
+  if(el&&!S.botMode){
+    const r=el.getBoundingClientRect();
+    if(r.width>0){
+      const dist=Math.sqrt((e.clientX-r.left-r.width/2)**2+(e.clientY-r.top-r.height/2)**2);
+      const maxd=Math.sqrt(r.width**2+r.height**2)/2;
+      S.clicks.push({x:e.clientX,y:e.clientY,prec:maxd>0?Math.max(0,1-dist/maxd):1});
+    }
+  }
+  updateUI();
+});
+window.addEventListener('blur',()=>{S.wblur++;updateUI();});
+setInterval(updateUI,1000);
+
+// ══════════════════════════════════════════════
+//  CANVAS
+// ══════════════════════════════════════════════
+let trailCtx,rhythmCtx,clickCtx;
+function initC(){
+  ['trailC','rhythmC','clickC'].forEach(id=>{
+    const c=document.getElementById(id);
+    if(c){ const w=c.parentElement.clientWidth-22;
+      c.width=w; c.style.width=w+'px'; }
+  });
+  const tc=document.getElementById('trailC');
+  const rc=document.getElementById('rhythmC');
+  const cc=document.getElementById('clickC');
+  if(tc) trailCtx=tc.getContext('2d');
+  if(rc) rhythmCtx=rc.getContext('2d');
+  if(cc) clickCtx=cc.getContext('2d');
+}
+function drawTrail(){
+  if(!trailCtx) return;
+  const c=trailCtx.canvas; trailCtx.clearRect(0,0,c.width,c.height);
+  const pts=S.botMode?(S.B._trail||[]):S.mpos;
+  if(pts.length<2) return;
+  for(let i=1;i<pts.length;i++){
+    const sx=c.width/window.innerWidth,sy=c.height/window.innerHeight;
+    const x1=pts[i-1].x*sx,y1=pts[i-1].y*sy,x2=pts[i].x*sx,y2=pts[i].y*sy;
+    const seg=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+    trailCtx.beginPath();trailCtx.moveTo(x1,y1);trailCtx.lineTo(x2,y2);
+    const a=Math.min(1,0.15+i/pts.length*0.85);
+    trailCtx.strokeStyle=seg>25?`rgba(239,68,68,${a})`:`rgba(16,185,129,${a})`;
+    trailCtx.lineWidth=1.5;trailCtx.stroke();
+  }
+}
+function clearTrail(){S.mpos=[];if(trailCtx)trailCtx.clearRect(0,0,trailCtx.canvas.width,trailCtx.canvas.height);}
+function drawRhythm(){
+  if(!rhythmCtx) return;
+  const c=rhythmCtx.canvas; rhythmCtx.clearRect(0,0,c.width,c.height);
+  const ks=S.botMode?Array.from({length:20},()=>S.B.ks+(Math.random()-.5)*S.B.ks*0.04):S.ks;
+  if(ks.length<2){setText('rhythmNote','No keystrokes yet');return;}
+  const max=Math.max(...ks,1),bot=S.botMode;
+  setText('rhythmNote',bot?`⚠ Uniform ${S.B.ks}ms (±${(S.B.ks*0.02).toFixed(0)}ms) — robotic`:`Natural: ±${stdDev(ks).toFixed(0)}ms deviation`);
+  rhythmCtx.beginPath();
+  const step=c.width/Math.max(ks.length-1,1);
+  ks.forEach((v,i)=>{const x=i*step,y=c.height-(v/max)*(c.height-8)-4;i===0?rhythmCtx.moveTo(x,y):rhythmCtx.lineTo(x,y);});
+  rhythmCtx.strokeStyle=bot?'#ef444888':'#10b98188';rhythmCtx.lineWidth=1.5;rhythmCtx.stroke();
+  rhythmCtx.lineTo(c.width,c.height);rhythmCtx.lineTo(0,c.height);rhythmCtx.closePath();
+  rhythmCtx.fillStyle=bot?'rgba(239,68,68,.06)':'rgba(16,185,129,.06)';rhythmCtx.fill();
+  ks.forEach((v,i)=>{const x=i*step,y=c.height-(v/max)*(c.height-8)-4;
+    rhythmCtx.beginPath();rhythmCtx.arc(x,y,2,0,Math.PI*2);
+    rhythmCtx.fillStyle=bot?'#ef4444':'#10b981';rhythmCtx.fill();});
+}
+
+// ══════════════════════════════════════════════
+//  BOOKING FLOW
+// ══════════════════════════════════════════════
+const TRAINS=[
+  {num:'12301',name:'Rajdhani Express',dep:'16:55',arr:'10:05',dur:'17h 10m',fare:{SL:830,'3A':2165,'2A':3105,'1A':5250},wl:false},
+  {num:'12951',name:'Mumbai Rajdhani', dep:'16:35',arr:'08:35',dur:'16h 00m',fare:{SL:810,'3A':2090,'2A':3020,'1A':5100},wl:false},
+  {num:'12259',name:'Duronto Express', dep:'23:05',arr:'17:30',dur:'18h 25m',fare:{SL:750,'3A':1940,'2A':2850,'1A':4800},wl:true},
+  {num:'22691',name:'Rajdhani SF',     dep:'07:20',arr:'22:50',dur:'15h 30m',fare:{SL:0,  '3A':1880,'2A':2780,'1A':4600},wl:false},
+  {num:'12002',name:'Bhopal Shatabdi', dep:'06:00',arr:'14:30',dur:'08h 30m',fare:{SL:0,  '3A':1350,'2A':2050,'1A':3600},wl:false},
+];
+const d0=new Date();d0.setDate(d0.getDate()+1);$('jdate').value=d0.toISOString().slice(0,10);
+
+function goStep(n){
+  if(n===2) renderTrains();
+  if(n===3) renderPax();
+  if(n===4) renderPsum();
+  for(let i=1;i<=4;i++){
+    const sec=$('sec'+i),st=$('s'+i),sl=$('sl'+i);
+    if(sec) sec.classList.toggle('active',i===n);
+    if(st){st.classList.toggle('active',i===n);st.classList.toggle('done',i<n);}
+    if(sl&&i<4) sl.classList.toggle('done',i<n);
+  }
+  if(!S.tForm) S.tForm=Date.now();
+}
+function renderTrains(){
+  selCls=$('tclass').value||'3A';
+  $('trainList').innerHTML=TRAINS.map((t,i)=>`
+    <div class="tc" id="tc${i}" onclick="pickT(${i})">
+      <div class="tcstripe"></div>
+      <div class="tctop">
+        <div><div class="tnm">${t.name}</div><div class="tnum">#${t.num}</div></div>
+        <span class="avail${t.wl?' wl':''}">${t.wl?'WL 3':'AVL '+(10+i*12)}</span>
+      </div>
+      <div class="trt">
+        <div class="tt">${t.dep}</div>
+        <div class="tdur">${t.dur}<div class="td-line"><span class="tdot">►</span></div></div>
+        <div class="tt">${t.arr}</div>
+        <div style="margin-left:auto;text-align:right"><div class="tp">₹${t.fare[selCls]||'—'}</div><div style="font-size:.6rem;color:var(--muted)">${selCls}</div></div>
+      </div></div>`).join('');
+}
+function pickT(i){
+  document.querySelectorAll('.tc').forEach(t=>t.classList.remove('sel'));
+  $('tc'+i).classList.add('sel'); selTrain=TRAINS[i]; $('btnTrain').disabled=false; updateUI();
+}
+function renderPax(){
+  const n=parseInt($('paxN').value)||1;
+  $('paxForms').innerHTML=Array.from({length:n},(_,i)=>`
+    <div class="pxcard"><div class="pxh">Passenger ${i+1}</div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">Name</label><input class="inp" id="p${i+1}n" placeholder="Full name as on ID"/></div>
+        <div class="fg"><label class="lbl">Age</label><input class="inp" type="number" id="p${i+1}a" placeholder="Age" min="1" max="120"/></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="lbl">Gender</label>
+          <select class="inp" id="p${i+1}g"><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select></div>
+        <div class="fg"><label class="lbl">Berth</label>
+          <select class="inp" id="p${i+1}b"><option>Lower</option><option>Middle</option><option>Upper</option><option>Side Lower</option><option>Side Upper</option></select></div>
+      </div></div>`).join('');
+}
+function renderPsum(){
+  if(!selTrain) return;
+  const n=parseInt($('paxN').value)||1;
+  const fare=selTrain.fare[selCls]||0;
+  const base=fare*n,tax=Math.round(base*.05),svc=20*n,total=base+tax+svc;
+  $('psum').innerHTML=`
+    <div class="prow"><span>${selTrain.name} #${selTrain.num}</span></div>
+    <div class="prow"><span>${selCls} × ${n}</span><span>₹${base.toLocaleString()}</span></div>
+    <div class="prow"><span>GST (5%)</span><span>₹${tax}</span></div>
+    <div class="prow"><span>Service Fee</span><span>₹${svc}</span></div>
+    <div class="prow ptot"><span>Total Payable</span><span class="pv">₹${total.toLocaleString()}</span></div>`;
+}
+function sPay(m,el){
+  payMode=m;
+  document.querySelectorAll('.pymb').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  $('upiF').style.display=m==='upi'?'block':'none';
+}
+
+async function doBook(){
+  const sc=computeLocal();
+  const pct=Math.round(sc.combined*100);
+  const sid=SESSION_ID||'LOCAL';
+
+  if(sc.combined>=0.35&&sc.combined<0.60){
+    openCap(async passed=>{
+      await apiCall('/api/captcha/result','POST',{session_id:SESSION_ID,passed});
+      finalizeBook(sc.combined>=0.60||!passed,pct,sid,sc);
+    });
+    return;
+  }
+  finalizeBook(sc.combined>=0.60,pct,sid,sc);
+}
+
+async function finalizeBook(isBot,pct,sid,sc){
+  // Call backend analyze
+  const res = await analyzeWithBackend();
+  const finalBot = res.is_bot !== undefined ? res.is_bot : isBot;
+  const finalPct = res.probability !== undefined ? Math.round(res.probability*100) : pct;
+
+  // Save booking
+  if(selTrain){
+    const n=parseInt($('paxN').value)||1;
+    const fare=(selTrain.fare[selCls]||0)*n;
+    const tax=Math.round(fare*.05);
+    await apiCall('/api/booking/confirm','POST',{
+      session_id:SESSION_ID, is_bot:finalBot,
+      train_number:selTrain.num, train_name:selTrain.name,
+      from_station:$('fromStn').value, to_station:$('toStn').value,
+      journey_date:$('jdate').value, seat_class:selCls,
+      passenger_count:n, total_fare:fare+tax+(20*n),
+      payment_method:payMode,
+    });
+  }
+
+  showVerdict(finalBot);
+  await sleep(1300);
+  hist.unshift({id:SESSION_ID,isBot:finalBot,pct:finalPct,t:new Date().toLocaleTimeString()});
+  updateHist();
+  startSession(); // new session for next booking
+
+  $('bkb').style.display='none';
+  if(finalBot){
+    $('blkPct').textContent=finalPct+'%';
+    $('blkSid').textContent=sid;
+    $('blkReasons').innerHTML=getFlags(sc).slice(0,3).map(f=>`• ${f.m.replace(/<[^>]+>/g,'')}`).join('<br>');
+    $('blkScr').classList.add('show');
+  } else {
+    $('pnrV').textContent=res.pnr||(Math.floor(1e9+Math.random()*9e9));
+    $('succPct').textContent=finalPct+'% bot probability';
+    $('succSid').textContent=sid;
+    $('succScr').classList.add('show');
+  }
+}
+
+function showVerdict(isBot){
+  const vf=$('vf'),vt=$('vft');
+  vt.textContent=isBot?'🤖 BOT DETECTED — BLOCKED':'✅ HUMAN VERIFIED — ALLOWED';
+  vt.className='vfi '+(isBot?'vfb':'vfh');
+  vf.classList.remove('show');void vf.offsetWidth;vf.classList.add('show');
+}
+
+function resetAll(){
+  $('bkb').style.display='';
+  $('succScr').classList.remove('show');
+  $('blkScr').classList.remove('show');
+  goStep(1); resetState(); stopBot(); clearTrail();
+}
+
+// ══════════════════════════════════════════════
+//  CAPTCHA
+// ══════════════════════════════════════════════
+let capAns=0,capTmr=null,capTL=30,capCb=null;
+const OPS=[()=>{const a=rn(2,9),b=rn(2,9);return{q:`${a} + ${b} = ?`,a:a+b};},
+           ()=>{const a=rn(6,18),b=rn(2,a);return{q:`${a} − ${b} = ?`,a:a-b};},
+           ()=>{const a=rn(2,9),b=rn(2,6);return{q:`${a} × ${b} = ?`,a:a*b};}];
+function openCap(cb){
+  capCb=cb;
+  const op=OPS[rn(0,2)]();capAns=op.a;
+  $('capQ').textContent=op.q;$('capInp').value='';$('capErr').textContent='';
+  capTL=30;updCapBar();$('capBg').classList.add('open');
+  setTimeout(()=>$('capInp').focus(),100);
+  if(capTmr)clearInterval(capTmr);
+  capTmr=setInterval(()=>{capTL--;updCapBar();if(capTL<=0){clearInterval(capTmr);$('capErr').textContent='⏰ Time expired';setTimeout(()=>closeCap(false),1100);}},1000);
+}
+function updCapBar(){const bf=$('capBf');if(bf){const p=capTL/30*100;bf.style.width=p+'%';bf.style.background=p>50?'#10b981':p>20?'#f59e0b':'#ef4444';}}
+function checkCap(){
+  const ans=parseInt($('capInp').value);
+  if(isNaN(ans)){$('capErr').textContent='Enter a number';return;}
+  if(ans===capAns){clearInterval(capTmr);$('capBg').classList.remove('open');if(capCb)capCb(true);}
+  else{$('capErr').textContent=`❌ Wrong. ${capTL}s left.`;$('capInp').value='';}
+}
+function closeCap(passed){clearInterval(capTmr);$('capBg').classList.remove('open');if(!passed&&capCb)capCb(false);}
+$('capInp').addEventListener('keydown',e=>{if(e.key==='Enter')checkCap();});
+
+// ══════════════════════════════════════════════
+//  TABS + HISTORY
+// ══════════════════════════════════════════════
+function stab(name,el){
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tpg').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on'); $('tpg-'+name).classList.add('on');
+  if(name==='visual'){initC();drawTrail();drawRhythm();drawClickMap();}
+  if(name==='history') loadDbSessions();
+}
+function updateHist(){
+  const hr=$('histRows');
+  hr.innerHTML=hist.length?hist.slice(0,12).map(h=>
+    `<div class="hist-row"><div class="hid">${h.id}</div>
+     <span class="hbdg ${h.isBot?'hb':'hh'}">${h.isBot?'BOT':'Human'}</span>
+     <span class="hs">${h.pct}%</span><span class="hs">${h.t}</span></div>`).join('')
+    :'<div class="nof">No sessions yet</div>';
+  const tot=hist.length,bots=hist.filter(h=>h.isBot).length;
+  setText('hs-tot',tot);setText('hs-bot',bots);setText('hs-hum',tot-bots);
+  setText('hs-rate',tot>0?Math.round(bots/tot*100)+'%':'0%');
+}
+function clearHist(){hist.length=0;updateHist();}
+async function loadDbSessions(){
+  const r=await apiCall('/api/sessions?limit=8');
+  const dbS=$('dbSessions');
+  if(!r.sessions||r.error){dbS.innerHTML='<div class="nof">Backend offline</div>';return;}
+  dbS.innerHTML=r.sessions.length?r.sessions.map(s=>`
+    <div class="hist-row">
+      <div class="hid">${s.session_id}</div>
+      <span class="hbdg ${s.blocked?'hb':'hh'}">${s.blocked?'BOT':'OK'}</span>
+      <span class="hs">${s.risk_level||'—'}</span>
+      <span class="hs">${(s.bot_probability*100).toFixed(0)}%</span>
+    </div>`).join(''):'<div class="nof">No DB sessions yet</div>';
+  // API status
+  $('apiStatus').innerHTML=`<span style="color:var(--green)">✅ Backend connected</span> &nbsp; ${r.sessions.length} sessions in DB`;
+}
+
+// click heatmap
+function drawClickMap(){
+  if(!clickCtx) return;
+  const c=clickCtx.canvas;clickCtx.clearRect(0,0,c.width,c.height);
+  const cx=c.width/2,cy=c.height/2;
+  [8,20,38].forEach(r=>{clickCtx.beginPath();clickCtx.arc(cx,cy,r,0,Math.PI*2);clickCtx.strokeStyle='#1a3050';clickCtx.stroke();});
+  clickCtx.strokeStyle='#1a3050';clickCtx.lineWidth=1;
+  clickCtx.beginPath();clickCtx.moveTo(cx,0);clickCtx.lineTo(cx,c.height);clickCtx.stroke();
+  clickCtx.beginPath();clickCtx.moveTo(0,cy);clickCtx.lineTo(c.width,cy);clickCtx.stroke();
+  const clicks=S.botMode
+    ?Array.from({length:8},()=>({x:cx+(Math.random()-.5)*4,y:cy+(Math.random()-.5)*4,prec:0.99}))
+    :S.clicks.map(cl=>({x:cx+(Math.random()-.5)*80,y:cy+(Math.random()-.5)*40,prec:cl.prec}));
+  clicks.forEach(cl=>{
+    clickCtx.beginPath();clickCtx.arc(cl.x,cl.y,3,0,Math.PI*2);
+    clickCtx.fillStyle=cl.prec>0.95?'#ef4444cc':'#10b981cc';clickCtx.fill();});
+}
+
+// ══════════════════════════════════════════════
+//  BOT SIMULATOR
+// ══════════════════════════════════════════════
+const BOTS={
+  speed:     {delay:200, ks:10, mm:0, prec:1.0, scroll:0, spd:3000},
+  smart:     {delay:1500,ks:35, mm:5, prec:0.99,scroll:0, spd:900},
+  sneaky:    {delay:3000,ks:90, mm:15,prec:0.97,scroll:1, spd:350},
+  human_like:{delay:4500,ks:180,mm:40,prec:0.82,scroll:3, spd:220},
+  tatkal:    {delay:80,  ks:5,  mm:0, prec:1.0, scroll:0, spd:9999},
+};
+function bLog(m,c=''){const l=document.createElement('div');l.className='ll '+c;const ts=new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});l.textContent=`[${ts}] ${m}`;const bl=$('botLog');bl.appendChild(l);bl.scrollTop=bl.scrollHeight;}
+function setBP(p){$('bpf').style.width=p+'%';}
+
+async function launchBot(){
+  if(botRunning) return;
+  botRunning=true; resetState();
+  $('btnL').disabled=true;$('btnS').style.display='inline-flex';
+  const prof=BOTS[$('botType').value];
+  S.botMode=true;S.tForm=Date.now();
+  S.B={mm:prof.mm,ks:prof.ks,prec:prof.prec,scroll:prof.scroll,paste:true,spd:prof.spd,
+       _trail:Array.from({length:25},(_,i)=>({x:200+i*30+(Math.random()-.5)*5,y:300+i*6+(Math.random()-.5)*5}))};
+  $('botLog').innerHTML='';bLog('Initializing...','i');bLog(`delay=${prof.delay}ms ks=${prof.ks}ms mm=${prof.mm}`,'i');setBP(0);
+
+  const steps=[
+    [8, ()=>{bLog('Connecting to booking system...','a');sleep(prof.delay*.3);goStep(1);}],
+    [18,async()=>{bLog('Auto-selecting FROM station...','a');await sleep(prof.delay);botSet('fromStn','New Delhi (NDLS)');}],
+    [26,async()=>{bLog('Auto-selecting TO station...','a');await sleep(prof.delay);botSet('toStn','Mumbai Central (BCT)');}],
+    [34,async()=>{bLog('Setting date...','a');await sleep(prof.delay*.7);botSet('jdate',$('jdate').value);}],
+    [42,async()=>{bLog('Searching trains...','a');await sleep(prof.delay*.5);goStep(2);}],
+    [52,async()=>{bLog('Selecting Rajdhani (max demand)...','d');await sleep(prof.delay*.8);pickT(0);await sleep(300);goStep(3);}],
+    [63,async()=>{bLog('Auto-filling passenger data...','a');await sleep(prof.delay);botType('p1n','BOT-AGENT-001');await sleep(prof.delay*.6);botType('p1a','28');}],
+    [73,async()=>{bLog('Filling contact details...','a');await sleep(prof.delay);botType('cMobile','9999999999');await sleep(prof.delay*.5);botType('cEmail','bot@attack.in');}],
+    [81,async()=>{bLog('Moving to payment...','a');await sleep(prof.delay*.4);goStep(4);}],
+    [89,async()=>{bLog('Filling UPI ID...','a');await sleep(prof.delay*.6);botType('upiId','bot@fraud');}],
+    [97,async()=>{bLog('Submitting booking (attempting bypass)...','d');await sleep(prof.delay*.3);await doBook();}],
+  ];
+  for(const [p,fn] of steps){if(!botRunning)break;await fn();setBP(p);updateUI();}
+  if(botRunning){setBP(100);bLog('Execution complete.','d');}
+  botRunning=false;$('btnL').disabled=false;$('btnS').style.display='none';
+}
+function stopBot(){
+  botRunning=false;S.botMode=false;
+  $('btnL').disabled=false;$('btnS').style.display='none';
+  if($('botLog').children.length>0) bLog('Bot stopped by user.');
+}
+function botSet(id,val){const el=$(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('input',{bubbles:true}));flashF(el);}
+function botType(id,val){const el=$(id);if(!el)return;el.value=val;el.dispatchEvent(new Event('input',{bubbles:true}));flashF(el);}
+function flashF(el){el.classList.add('bot-fill');setTimeout(()=>el.classList.remove('bot-fill'),800);}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function $(id){return document.getElementById(id);}
+function setText(id,v){const e=$(id);if(e)e.textContent=v;}
+function avg(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0;}
+function stdDev(a){if(a.length<2)return 0;const m=avg(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length);}
+function rn(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function setBar(id,val){const el=$('b-'+id),vl=$('bv-'+id);if(!el||!vl)return;const p=Math.round(val*100);el.style.width=p+'%';el.style.backgroundColor=val>.7?'#ef4444':val>.4?'#f59e0b':'#10b981';vl.textContent=p+'%';}
+function setSig(id,val,bad=false){const el=$(id);if(!el)return;el.textContent=val;el.className='sv '+(bad?'d':'g');}
+
+// ── INIT ────────────────────────────────────
+window.addEventListener('load',async ()=>{
+  await startSession();
+  initC(); updateUI();
+  $('jdate').value=d0.toISOString().slice(0,10);
+  // Check API health
+  const h=await apiCall('/api/health');
+  if(h.status==='ok'){
+    setText('apiStatus',`✅ Backend online | DB: ${h.db} | ML: ${h.ml.sklearn?'scikit-learn':'rule-based'}`);
+  }
+});
+</script>
+</body>
+</html>

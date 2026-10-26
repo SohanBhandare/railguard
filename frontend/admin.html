@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>IndiaRail — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1220;--surf:#0f1d30;--brd:#1a3050;--text:#c8ddf0;--mut:#4a6888;--orange:#f97316;--red:#ef4444;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--fh:'Rajdhani',sans-serif;--fb:'Sora',sans-serif;--fm:'JetBrains Mono',monospace;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh}
+.shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+
+/* sidebar */
+.sidebar{background:#06101a;border-right:1px solid var(--brd);padding:20px 0;display:flex;flex-direction:column}
+.slogo{padding:0 20px 20px;border-bottom:1px solid var(--brd);margin-bottom:16px}
+.slname{font-family:var(--fh);font-size:1.4rem;font-weight:700;color:#fff}
+.slname em{color:var(--orange);font-style:normal}
+.slsub{font-size:.6rem;color:var(--mut);text-transform:uppercase;letter-spacing:1.5px}
+.snav a{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:.78rem;color:var(--mut);text-decoration:none;transition:all .2s;border-right:2px solid transparent}
+.snav a:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.snav a.active{color:var(--orange);background:rgba(249,115,22,.06);border-right-color:var(--orange)}
+.snav .ico{font-size:1rem}
+.sbot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--brd)}
+.sbotl{font-size:.62rem;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.8px}
+.sbotv{font-size:.7rem;font-family:var(--fm);color:var(--green)}
+
+/* main */
+.main{padding:24px 28px;overflow-y:auto}
+.pg{display:none}.pg.on{display:block}
+.phdr{margin-bottom:22px}
+.ptit{font-family:var(--fh);font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:4px}
+.psub{font-size:.76rem;color:var(--mut)}
+
+/* stat cards */
+.scg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.sc2{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:16px}
+.sc2-lbl{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.sc2-val{font-family:var(--fh);font-size:2rem;font-weight:700;line-height:1}
+.sc2-sub{font-size:.68rem;color:var(--mut);margin-top:4px}
+.sc2.red .sc2-val{color:var(--red)}.sc2.green .sc2-val{color:var(--green)}.sc2.yellow .sc2-val{color:var(--yellow)}.sc2.blue .sc2-val{color:var(--blue)}
+
+/* charts */
+.chg{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:20px}
+.chbox{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:16px}
+.chlbl{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.chlbl button{background:none;border:1px solid var(--brd);color:var(--mut);border-radius:6px;padding:3px 10px;font-size:.62rem;cursor:pointer;transition:all .2s}
+.chlbl button:hover{border-color:var(--orange);color:var(--orange)}
+
+/* table */
+.tbl-wrap{background:var(--surf);border:1px solid var(--brd);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.tbl-hdr{padding:13px 16px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.tbl-title{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{padding:9px 14px;font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;font-weight:600;background:#0a1624;text-align:left}
+.tbl td{padding:9px 14px;font-size:.74rem;border-bottom:1px solid #0f1d2c}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.015)}
+.sid{font-family:var(--fm);font-size:.66rem;color:var(--mut)}
+.risk{font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:10px}
+.rc{background:rgba(239,68,68,.15);color:#ef4444}.rh{background:rgba(249,115,22,.12);color:#f97316}
+.rm{background:rgba(245,158,11,.12);color:#f59e0b}.rl{background:rgba(16,185,129,.12);color:#10b981}
+.bloc{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(239,68,68,.15);color:#ef4444}
+.pass{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(16,185,129,.12);color:#10b981}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.mini-bar{flex:1;max-width:80px;height:4px;background:var(--brd);border-radius:2px;overflow:hidden}
+.mini-fill{height:100%;border-radius:2px}
+
+/* ip table */
+.block-btn{background:none;border:1px solid var(--brd);color:var(--mut);border-radius:6px;padding:3px 8px;font-size:.6rem;cursor:pointer;transition:all .2s}
+.block-btn:hover{border-color:var(--red);color:var(--red)}
+.block-btn.blocked{background:rgba(239,68,68,.1);border-color:#ef4444;color:#ef4444}
+
+/* flags panel */
+.flag-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #0f1d2c;font-size:.73rem}
+.flag-row:last-child{border-bottom:none}
+.fdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fdot.c{background:#ef4444;box-shadow:0 0 5px #ef444480}.fdot.h{background:#f97316}.fdot.m{background:#f59e0b}.fdot.l{background:#10b981}
+.fbar{flex:1;height:5px;background:var(--brd);border-radius:3px;overflow:hidden}
+.ff{height:100%;border-radius:3px}
+
+/* feat importance */
+.fi-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.fi-name{font-size:.68rem;color:var(--mut);width:150px;flex-shrink:0}
+.fi-track{flex:1;height:7px;background:var(--brd);border-radius:4px;overflow:hidden}
+.fi-fill{height:100%;background:var(--orange);border-radius:4px;transition:width .8s ease}
+.fi-val{font-family:var(--fm);font-size:.62rem;color:var(--mut);width:36px;text-align:right}
+
+/* refresh badge */
+.live-badge{display:flex;align-items:center;gap:5px;font-size:.6rem;color:var(--green)}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:p 1.8s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.2}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1a3050;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- sidebar -->
+<div class="sidebar">
+  <div class="slogo">
+    <div class="slname">India<em>Rail</em></div>
+    <div class="slsub">Admin Dashboard</div>
+  </div>
+  <div class="snav">
+    <a href="#" class="active" onclick="showPg('overview',this)"><span class="ico">📊</span>Overview</a>
+    <a href="#" onclick="showPg('sessions',this)"><span class="ico">🗃️</span>Sessions</a>
+    <a href="#" onclick="showPg('ipintel',this)"><span class="ico">🌐</span>IP Intelligence</a>
+    <a href="#" onclick="showPg('mlmodel',this)"><span class="ico">🧠</span>ML Model</a>
+  </div>
+  <div class="sbot">
+    <div class="sbotl">System Status</div>
+    <div class="sbotv" id="sysStatus">Checking...</div>
+    <div style="margin-top:6px;font-size:.6rem;color:var(--mut)" id="sysTime"></div>
+  </div>
+</div>
+
+<!-- main -->
+<div class="main">
+
+  <!-- overview -->
+  <div class="pg on" id="pg-overview">
+    <div class="phdr">
+      <div class="ptit">Dashboard Overview</div>
+      <div class="psub" style="display:flex;align-items:center;gap:10px">
+        Real-time bot detection metrics
+        <div class="live-badge"><div class="ldot"></div>Live — updates every 10s</div>
+        <button style="background:none;border:1px solid var(--brd);color:var(--mut);border-radius:6px;padding:4px 12px;font-size:.62rem;cursor:pointer" onclick="loadAll()">↻ Refresh</button>
+      </div>
+    </div>
+    <!-- stat cards -->
+    <div class="scg">
+      <div class="sc2 blue"><div class="sc2-lbl">Total Sessions</div><div class="sc2-val" id="st-tot">—</div><div class="sc2-sub">All time</div></div>
+      <div class="sc2 red"><div class="sc2-lbl">Bots Blocked</div><div class="sc2-val" id="st-bot">—</div><div class="sc2-sub">Prevented bookings</div></div>
+      <div class="sc2 green"><div class="sc2-lbl">Humans Passed</div><div class="sc2-val" id="st-hum">—</div><div class="sc2-sub">Legitimate users</div></div>
+      <div class="sc2 yellow"><div class="sc2-lbl">Avg Bot Score</div><div class="sc2-val" id="st-avg">—</div><div class="sc2-sub">Mean probability</div></div>
+    </div>
+    <!-- charts -->
+    <div class="chg">
+      <div class="chbox">
+        <div class="chlbl">Hourly Bot vs Human Activity<button onclick="loadHourly()">↻</button></div>
+        <canvas id="hourlyChart" height="180"></canvas>
+      </div>
+      <div class="chbox">
+        <div class="chlbl">Risk Distribution</div>
+        <canvas id="riskChart" height="180"></canvas>
+      </div>
+    </div>
+    <!-- top flags -->
+    <div class="chg" style="grid-template-columns:1fr 1fr">
+      <div class="chbox">
+        <div class="chlbl">Top Flagged Signals</div>
+        <div id="topFlags"></div>
+      </div>
+      <div class="chbox">
+        <div class="chlbl">Recent Sessions</div>
+        <div id="recentSessions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- sessions -->
+  <div class="pg" id="pg-sessions">
+    <div class="phdr">
+      <div class="ptit">Session Log</div>
+      <div class="psub">All analyzed booking sessions from the database</div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr">
+        <div class="tbl-title">Sessions</div>
+        <button class="chlbl" onclick="loadSessions()" style="background:none;border:1px solid var(--brd);color:var(--mut);border-radius:6px;padding:4px 12px;font-size:.62rem;cursor:pointer">↻ Refresh</button>
+      </div>
+      <table class="tbl">
+        <thead><tr>
+          <th>Session ID</th><th>IP</th><th>Time</th><th>Risk</th><th>Score</th><th>Status</th><th>Train</th>
+        </tr></thead>
+        <tbody id="sessionTbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ip intel -->
+  <div class="pg" id="pg-ipintel">
+    <div class="phdr">
+      <div class="ptit">IP Intelligence</div>
+      <div class="psub">Track and block suspicious IP addresses</div>
+    </div>
+    <div class="tbl-wrap">
+      <div class="tbl-hdr">
+        <div class="tbl-title">IP Records</div>
+        <button onclick="loadIpIntel()" style="background:none;border:1px solid var(--brd);color:var(--mut);border-radius:6px;padding:4px 12px;font-size:.62rem;cursor:pointer">↻ Refresh</button>
+      </div>
+      <table class="tbl">
+        <thead><tr>
+          <th>IP Address</th><th>Attempts</th><th>Bots</th><th>Bot Rate</th><th>Risk Score</th><th>Last Seen</th><th>Action</th>
+        </tr></thead>
+        <tbody id="ipTbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ml model -->
+  <div class="pg" id="pg-mlmodel">
+    <div class="phdr">
+      <div class="ptit">ML Model</div>
+      <div class="psub">Random Forest + Isolation Forest — feature importance and retraining</div>
+    </div>
+    <div class="chg" style="grid-template-columns:1fr 1fr">
+      <div class="chbox">
+        <div class="chlbl">Model Info</div>
+        <div id="mlInfo" style="font-size:.74rem;line-height:2;color:var(--mut)">Loading...</div>
+        <div style="margin-top:16px">
+          <button onclick="retrain()" style="background:var(--orange);border:none;color:#fff;border-radius:8px;padding:9px 20px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s">↺ Retrain Model</button>
+          <div style="font-size:.66rem;color:var(--mut);margin-top:7px" id="retrainMsg"></div>
+        </div>
+      </div>
+      <div class="chbox">
+        <div class="chlbl">Feature Importance (Random Forest)</div>
+        <div id="featImp"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+const API='/api';
+let hourlyChart=null,riskChart=null;
+
+async function get(path){
+  try{const r=await fetch(path);return await r.json();}
+  catch(e){return {error:e.message};}
+}
+async function post(path,body){
+  try{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return await r.json();}
+  catch(e){return {error:e.message};}
+}
+
+function showPg(name,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.snav a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('pg-'+name).classList.add('on');
+  el.classList.add('active');
+  if(name==='overview') loadAll();
+  if(name==='sessions') loadSessions();
+  if(name==='ipintel') loadIpIntel();
+  if(name==='mlmodel') loadML();
+  return false;
+}
+
+async function loadAll(){
+  const d=await get(API+'/dashboard');
+  if(d.error){setText('st-tot','ERR');return;}
+  const s=d.stats||{};
+  setText('st-tot',s.total||0);
+  setText('st-bot',s.bots||0);
+  setText('st-hum',s.humans||0);
+  setText('st-avg',(s.avg_bot_pct||0)+'%');
+  renderHourly(d.hourly_trend||[]);
+  renderRisk(d.risk_distribution||[]);
+  renderTopFlags(d.top_flags||[]);
+  renderRecent(d.recent_sessions||[]);
+}
+
+function renderHourly(data){
+  const labels=data.map(r=>r.hour);
+  const bots=data.map(r=>r.bots||0);
+  const humans=data.map(r=>r.total-(r.bots||0));
+  const ctx=document.getElementById('hourlyChart');
+  if(hourlyChart) hourlyChart.destroy();
+  hourlyChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'Bots',data:bots,backgroundColor:'rgba(239,68,68,.7)',borderRadius:4},
+    {label:'Humans',data:humans,backgroundColor:'rgba(16,185,129,.5)',borderRadius:4},
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:'#4a6888',font:{size:10}}}},
+    scales:{x:{ticks:{color:'#4a6888',font:{size:9}},grid:{color:'#1a3050'}},
+            y:{ticks:{color:'#4a6888',font:{size:9}},grid:{color:'#1a3050'}}}}});
+}
+
+function renderRisk(data){
+  const cmap={critical:'#ef4444',high:'#f97316',medium:'#f59e0b',low:'#10b981'};
+  const ctx=document.getElementById('riskChart');
+  if(riskChart) riskChart.destroy();
+  riskChart=new Chart(ctx,{type:'doughnut',data:{
+    labels:data.map(r=>r.risk_level),
+    datasets:[{data:data.map(r=>r.cnt),backgroundColor:data.map(r=>cmap[r.risk_level]||'#3b82f6'),borderWidth:0,hoverOffset:6}]
+  },options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#4a6888',font:{size:10},padding:10}}},cutout:'70%'}});
+}
+
+function renderTopFlags(flags){
+  const max=flags[0]?.cnt||1;
+  document.getElementById('topFlags').innerHTML=flags.map(f=>`
+    <div class="flag-row">
+      <div class="fdot ${f.severity==='critical'?'c':f.severity==='high'?'h':f.severity==='medium'?'m':'l'}"></div>
+      <div style="font-size:.7rem;color:#8099b4;flex:1">${f.signal_type.replace(/_/g,' ')}</div>
+      <div class="fbar"><div class="ff" style="width:${Math.round(f.cnt/max*100)}%;background:${f.severity==='critical'?'#ef4444':f.severity==='high'?'#f97316':'#f59e0b'}"></div></div>
+      <div style="font-family:var(--fm);font-size:.62rem;color:var(--mut);width:22px;text-align:right">${f.cnt}</div>
+    </div>`).join('')||'<div style="font-size:.7rem;color:var(--mut);text-align:center;padding:12px">No flags yet</div>';
+}
+
+function renderRecent(sessions){
+  document.getElementById('recentSessions').innerHTML=sessions.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #0f1d2c;font-size:.7rem">
+      <div style="font-family:var(--fm);font-size:.62rem;color:var(--mut)">${s.session_id}</div>
+      <span class="${s.blocked?'bloc':'pass'}">${s.blocked?'BLOCKED':'PASSED'}</span>
+      <div style="font-family:var(--fm);font-size:.62rem;color:var(--mut)">${s.pct}%</div>
+    </div>`).join('')||'<div style="font-size:.7rem;color:var(--mut);text-align:center;padding:12px">No sessions</div>';
+}
+
+async function loadSessions(){
+  const d=await get(API+'/sessions?limit=50');
+  const rows=d.sessions||[];
+  document.getElementById('sessionTbl').innerHTML=rows.map(r=>{
+    const pct=Math.round((r.bot_probability||0)*100);
+    const col=pct>=75?'#ef4444':pct>=55?'#f97316':pct>=35?'#f59e0b':'#10b981';
+    return `<tr>
+      <td class="sid">${r.session_id}</td>
+      <td style="font-family:var(--fm);font-size:.66rem">${r.ip_address}</td>
+      <td style="font-size:.66rem;color:var(--mut)">${r.time||r.created_at?.slice(11,19)||'—'}</td>
+      <td><span class="risk r${r.risk_level?.charAt(0)||'l'}">${r.risk_level||'—'}</span></td>
+      <td><div class="bar-cell">${pct}%<div class="mini-bar"><div class="mini-fill" style="width:${pct}%;background:${col}"></div></div></div></td>
+      <td><span class="${r.blocked?'bloc':'pass'}">${r.blocked?'BLOCKED':'PASSED'}</span></td>
+      <td style="font-size:.66rem;color:var(--mut)">${r.train_name||'—'}</td>
+    </tr>`;}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">No sessions yet</td></tr>';
+}
+
+async function loadIpIntel(){
+  const d=await get(API+'/ip-intel');
+  const rows=d.records||[];
+  document.getElementById('ipTbl').innerHTML=rows.map(r=>`<tr>
+    <td style="font-family:var(--fm);font-size:.7rem">${r.ip_address}</td>
+    <td style="font-family:var(--fm);font-size:.68rem">${r.total_attempts}</td>
+    <td style="font-family:var(--fm);font-size:.68rem;color:#ef4444">${r.bot_attempts}</td>
+    <td><div class="bar-cell">${r.bot_rate_pct||0}%<div class="mini-bar"><div class="mini-fill" style="width:${r.bot_rate_pct||0}%;background:${(r.bot_rate_pct||0)>=50?'#ef4444':'#10b981'}"></div></div></div></td>
+    <td style="font-family:var(--fm);font-size:.68rem;color:${(r.risk_score||0)>.5?'#ef4444':'#10b981'}">${((r.risk_score||0)*100).toFixed(0)}%</td>
+    <td style="font-size:.66rem;color:var(--mut)">${r.last_seen?.slice(0,16)||'—'}</td>
+    <td><button class="block-btn ${r.is_blocked?'blocked':''}" onclick="blockIP('${r.ip_address}',this)">${r.is_blocked?'BLOCKED':'Block'}</button></td>
+  </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--mut);padding:20px">No IP records</td></tr>';
+}
+
+async function blockIP(ip,btn){
+  if(btn.classList.contains('blocked')) return;
+  const r=await post(API+'/ip-intel/block',{ip_address:ip,reason:'Admin manual block'});
+  if(r.ok){btn.textContent='BLOCKED';btn.classList.add('blocked');}
+}
+
+async function loadML(){
+  const h=await get(API+'/health');
+  const fi=await get(API+'/feature-importance');
+  const ml=h.ml||{};
+  document.getElementById('mlInfo').innerHTML=`
+    <div>scikit-learn: <strong style="color:${ml.sklearn?'#10b981':'#ef4444'}">${ml.sklearn?'Available ✅':'Not installed ❌'}</strong></div>
+    <div>Model trained: <strong style="color:var(--text)">${ml.trained?'Yes':'No'}</strong></div>
+    <div>Trained at: <strong style="color:var(--text)">${ml.trained_at||'—'}</strong></div>
+    <div>Training samples: <strong style="color:var(--text)">${ml.samples||0}</strong></div>
+    <div>Algorithm: <strong style="color:var(--orange)">RF (150 trees) + Isolation Forest</strong></div>
+    <div>Threshold: <strong style="color:var(--text)">60% → BLOCK</strong></div>`;
+  const imp=fi.importance||[];
+  const max=imp[0]?.importance||1;
+  document.getElementById('featImp').innerHTML=imp.map(f=>`
+    <div class="fi-row">
+      <div class="fi-name">${f.feature.replace(/_/g,' ')}</div>
+      <div class="fi-track"><div class="fi-fill" style="width:${Math.round(f.importance/max*100)}%"></div></div>
+      <div class="fi-val">${(f.importance*100).toFixed(1)}%</div>
+    </div>`).join('')||'<div style="color:var(--mut)">No model data</div>';
+}
+
+async function retrain(){
+  const msg=document.getElementById('retrainMsg');
+  msg.textContent='Retraining...';msg.style.color='#f59e0b';
+  const r=await post(API+'/retrain',{});
+  if(r.ok){msg.textContent=`✅ Done! Accuracy: ${(r.accuracy*100).toFixed(1)}% on ${r.samples} samples`;msg.style.color='#10b981';}
+  else{msg.textContent='❌ '+( r.error||'Failed');msg.style.color='#ef4444';}
+}
+
+async function loadHourly(){const d=await get(API+'/charts/hourly');renderHourly(d.data||[]);}
+
+function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+async function checkHealth(){
+  const h=await get(API+'/health');
+  const ss=document.getElementById('sysStatus');
+  if(h.status==='ok'){ss.textContent='✅ Online';ss.style.color='#10b981';}
+  else{ss.textContent='❌ Offline';ss.style.color='#ef4444';}
+  document.getElementById('sysTime').textContent=new Date().toLocaleTimeString();
+}
+
+// Init
+checkHealth();loadAll();
+setInterval(()=>{checkHealth();loadAll();},10000);
+</script>
+</body>
+</html>
