@@ -23,9 +23,6 @@ Python, Flask, scikit-learn, NumPy, SQLite, HTML, CSS, JavaScript, Chart.js
 5. Final score = 65% Random Forest + 25% Isolation Forest + 10% rules and IP history.
 6. A score of 0.60 or more is treated as a bot and the booking is blocked.
 
-## Screenshots
-<!-- Add screenshots here, for example: ![Booking page](screenshots/booking.png) -->
-
 ## How to run
 ```bash
 python -m venv venv
